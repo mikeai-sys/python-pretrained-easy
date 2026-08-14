@@ -652,6 +652,4 @@ Apache-2.0
 **Copyright (c) 2026 Mike Koci-Eliseart Company. All rights reserved.**
 
 This software and its documentation are the property of Mike Koci-Eliseart
-Company ("Mike Koci" / "Eliseart Company"). Unauthorized copying, distribution,
-or use of this software, in whole or in part, without the prior written consent
-of the copyright holder is prohibited.
+Company ("Mike Koci" / "Eliseart Company"), you can use it for free and edit the code .
