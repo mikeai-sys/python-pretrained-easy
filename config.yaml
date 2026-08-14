@@ -1,0 +1,110 @@
+# Copy to config.local.yaml and adjust. No API keys needed — everything is local.
+
+actor:
+  # Any HuggingFace chat model you can run locally.
+  model_id: "/home/user/labs/Qwen2.5-1.5B-Instruct"
+  device: "cpu"           # "auto" lets accelerate pick the GPU
+  load_in_4bit: false     # true = 4-bit QLoRA (needs a CUDA GPU + bitsandbytes)
+  max_new_tokens: 512
+  temperature: 0.7
+
+judge:
+  # The evaluator. Use a stronger/fixed model for honest grading, or leave as
+  # null to reuse the actor model.
+  model_id: null
+  device: "auto"
+  load_in_4bit: false
+
+loop:
+  iterations: 10          # task/solve/eval cycles per run
+  eval_threshold: 0.7     # keep examples scoring >= this
+  train_every: 8          # fine-tune after this many good examples
+  max_retries: 2          # retries per task before discard
+
+finetune:
+  method: "lora"          # "lora" (GPU/CPU) or "qlora" (4bit, needs CUDA GPU)
+  lora_r: 8
+  lora_alpha: 16
+  lora_dropout: 0.05
+  target_modules: ["q_proj", "k_proj", "v_proj", "o_proj"]
+  epochs: 1
+  learning_rate: 2.0e-4
+  per_device_batch_size: 2
+  gradient_accumulation_steps: 2
+
+tools:
+  web_search:
+    enabled: true
+    provider: "duckduckgo"   # duckduckgo | brave | serpapi | google | searlo
+    api_key_env: "SEARCH_API_KEY"   # generic fallback for brave/serpapi
+    brave_api_key_env: "BRAVE_API_KEY"
+    serpapi_api_key_env: "SERPAPI_KEY"
+    max_results: 10
+    retries: 3               # DuckDuckGo rate-limits aggressively; back off and retry
+    retry_delay: 5
+    backend: "html"           # "html" avoids DDG's throttled JSON endpoint; "auto" uses JSON
+    google:                  # only needed when provider: "google"
+      api_key_env: "GOOGLE_API_KEY"
+      cse_id_env: "GOOGLE_CSE_ID"
+    searlo:                  # CSE replacement — full-web Google index
+      api_url: "https://api.searlo.tech/api/v1"   # base URL; /search is appended
+      api_key_env: "SEARLO_API_KEY"
+  crawl:
+    enabled: true
+    max_pages: 5
+    respect_robots: true
+    delay: 1.0               # polite pause between requests (seconds)
+    timeout: 10
+    user_agent: "SelfImprovingAgent/0.1 (+educational research crawler)"
+  browser:
+    enabled: false           # set true for JS-rendered pages (needs playwright)
+    headless: true
+    timeout: 20000
+
+# Autonomous web data collection: search real topics, crawl, build a local
+# training dataset, then DELETE the crawled data after training.
+data_collection:
+  enabled: false
+  queries: []                # e.g. ["how transformers work", "pytorch lora fine-tuning"]
+  dataset_type: "text"       # text | image | video
+  max_results_per_query: 10
+  examples_per_doc: 2
+  max_chars_per_doc: 4000
+  max_media: 20              # images/videos collected per query (default for --limit)
+  image_overfetch: 1.3       # over-fetch candidates to absorb download failures
+  download_media: true       # download images; for video, download thumbnails only
+  caption_from_source: true  # image captions: use source-page text (no model needed)
+  max_caption_chars: 300     # truncate captions to this length
+  # Crawl data is kept on disk after training. Use `python -m src.main --delete`
+  # to remove it when you no longer need it.
+
+paths:
+  memory: "data/memory.jsonl"
+  model_checkpoint: "data/checkpoint"
+  sft_dataset: "data/sft.jsonl"
+  crawl_dir: "data/crawl"
+
+# Retrieval-Augmented Generation over crawled/parsed data. Optional — only used
+# by `ppte rag`. Needs `pip install sentence-transformers` (and optionally
+# `faiss-cpu` for large corpora). Runs on GPU if one is available, else CPU.
+rag:
+  model: "sentence-transformers/all-MiniLM-L6-v2"  # embedding model
+  device: "auto"             # "auto" | "cuda" | "cpu"
+  chunk_chars: 800           # chunk size for splitting parsed pages
+  chunk_overlap: 100         # overlap between consecutive chunks
+  top_k: 5                   # default retrieval count
+
+# Image-model fine-tuning (`ppte img train/run`). Optional — needs
+# `pip install diffusers accelerate peft safetensors` (+ GPU recommended).
+image:
+  base_model: "runwayml/stable-diffusion-v1-5"   # base diffusion model
+  device: "auto"             # "auto" | "cuda" | "cpu"
+  resolution: 512            # train image resolution (px)
+  batch_size: 2
+  lora_r: 8
+  lora_alpha: 16
+  target_modules: ["to_q", "to_k", "to_v", "to_out.0"]  # UNet attention projections
+  learning_rate: 1.0e-4
+  max_train_steps: 500       # LoRA training steps
+  num_inference_steps: 30    # sampling steps for `img run`
+  adapter_dir: "data/img_lora"

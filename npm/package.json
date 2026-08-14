@@ -1,0 +1,39 @@
+{
+  "name": "@eliseart/ppte",
+  "version": "0.1.12",
+  "description": "Python Pretraining Easy - a local, GPU-trained self-improving AI toolkit (npm wrapper around the Python CLI).",
+  "keywords": [
+    "ai",
+    "ml",
+    "llm",
+    "fine-tuning",
+    "lora",
+    "rag",
+    "self-improving"
+  ],
+  "license": "Apache-2.0",
+  "bin": {
+    "ppte": "bin/ppte.js"
+  },
+  "scripts": {
+    "postinstall": "node scripts/bootstrap.mjs",
+    "prepare": "node scripts/copy-source.mjs"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "os": [
+    "linux",
+    "darwin",
+    "win32"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ],
+  "files": [
+    "bin/",
+    "scripts/",
+    "python/"
+  ]
+}

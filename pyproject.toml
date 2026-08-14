@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ppte"
+version = "0.1.0"
+description = "Python Pretraining Easy — a local, GPU-trained self-improving AI toolkit"
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=2.1",
+    "transformers>=4.40",
+    "trl>=0.8",
+    "peft>=0.10",
+    "datasets>=2.19",
+    "accelerate>=0.29",
+    "pyyaml>=6.0",
+    "requests>=2.31",
+    "beautifulsoup4>=4.12",
+    "lxml>=5.0",
+    "duckduckgo_search>=5.0",
+]
+
+[project.optional-dependencies]
+bits = ["bitsandbytes>=0.43"]        # for 4-bit QLoRA
+browser = ["playwright>=1.40"]        # for JS-rendered crawling
+image = ["diffusers>=0.28", "peft>=0.10", "safetensors>=0.4", "accelerate>=0.29", "torchvision"]  # for `ppte img`
+
+[project.scripts]
+ppte = "src.main:cli"
+
+[tool.setuptools]
+packages = ["src", "src.agent", "src.agent.tools", "src.tasks"]

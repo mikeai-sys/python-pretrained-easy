@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+build/
+dist/
+
+# ppte runtime data (your training data, crawls, adapters)
+data/
+runs/
+*.log
+
+# Secrets & local config
+.env
+
+# Generated / test artifacts
+urls.txt
+npm/.venv/
+npm/python/
+npm/urls.txt
